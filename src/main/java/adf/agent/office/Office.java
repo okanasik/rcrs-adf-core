@@ -1,6 +1,7 @@
 package adf.agent.office;
 
 import adf.agent.Agent;
+import adf.agent.action.common.ActionRest;
 import adf.agent.config.ModuleConfig;
 import adf.agent.develop.DevelopData;
 import adf.agent.info.AgentInfo;
@@ -11,10 +12,17 @@ import rescuecore2.standard.entities.StandardEntity;
 public abstract class Office<E extends StandardEntity> extends Agent<E> {
 	TacticsCenter rootTacticsCenter;
 
+	public Office() {
+    }
+
 	public Office(TacticsCenter tacticsCenter, boolean isPrecompute, String datastorageName, boolean isDebugMode, ModuleConfig moduleConfig, DevelopData developData) {
-		super(isPrecompute, datastorageName, isDebugMode, moduleConfig, developData);
-		this.rootTacticsCenter = tacticsCenter;
+	    init(tacticsCenter, isPrecompute, datastorageName, isDebugMode, moduleConfig, developData);
 	}
+
+	public void init(TacticsCenter tacticsCenter, boolean isPrecompute, String datastorageName, boolean isDebugMode, ModuleConfig moduleConfig, DevelopData developData) {
+	    super.init(isPrecompute, datastorageName, isDebugMode, moduleConfig, developData);
+        this.rootTacticsCenter = tacticsCenter;
+    }
 
 	@Override
 	protected void postConnect() {
@@ -44,5 +52,6 @@ public abstract class Office<E extends StandardEntity> extends Agent<E> {
 
 	protected void think() {
 		this.rootTacticsCenter.think(this.agentInfo, this.worldInfo, this.scenarioInfo, this.moduleManager, this.messageManager, this.developData);
+		send((new ActionRest()).getCommand(agentInfo.getID(), agentInfo.getTime()));
 	}
 }

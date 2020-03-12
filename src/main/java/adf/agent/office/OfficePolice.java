@@ -9,6 +9,9 @@ import rescuecore2.standard.entities.StandardEntityURN;
 import java.util.EnumSet;
 
 public class OfficePolice extends Office<Building> {
+    public OfficePolice() {
+
+    }
 	public OfficePolice(TacticsPoliceOffice tacticsPoliceOffice, boolean isPrecompute, boolean isDebugMode, ModuleConfig moduleConfig, DevelopData developData) {
 		super(tacticsPoliceOffice, isPrecompute, DATASTORAGE_FILE_NAME_POLICE, isDebugMode, moduleConfig, developData);
 	}

@@ -45,20 +45,27 @@ public abstract class Agent<E extends StandardEntity> extends AbstractAgent<Stan
 	protected boolean isDebugMode;
 	private int ignoreTime;
 
+	public Agent() {
+    }
+
 	public Agent(boolean isPrecompute, String dataStorageName, boolean isDebugMode, ModuleConfig moduleConfig, DevelopData developData) {
-		this.isPrecompute = isPrecompute;
-		this.isDebugMode = isDebugMode;
-
-		if (isPrecompute) {
-			PrecomputeData.removeData(dataStorageName);
-			this.mode = ScenarioInfo.Mode.PRECOMPUTATION_PHASE;
-		}
-
-		this.moduleConfig = moduleConfig;
-		this.precomputeData = new PrecomputeData(dataStorageName);
-		this.developData = developData;
-		this.messageManager = new MessageManager();
+		init(isPrecompute, dataStorageName, isDebugMode, moduleConfig, developData);
 	}
+
+	public void init(boolean isPrecompute, String dataStorageName, boolean isDebugMode, ModuleConfig moduleConfig, DevelopData developData) {
+        this.isPrecompute = isPrecompute;
+        this.isDebugMode = isDebugMode;
+
+        if (isPrecompute) {
+            PrecomputeData.removeData(dataStorageName);
+            this.mode = ScenarioInfo.Mode.PRECOMPUTATION_PHASE;
+        }
+
+        this.moduleConfig = moduleConfig;
+        this.precomputeData = new PrecomputeData(dataStorageName);
+        this.developData = developData;
+        this.messageManager = new MessageManager();
+    }
 
 	@Override
 	public final String[] getRequestedEntityURNs() {
@@ -118,6 +125,8 @@ public abstract class Agent<E extends StandardEntity> extends AbstractAgent<Stan
 				break;
 			default:
 		}
+
+
 	}
 
 	@Override

@@ -197,4 +197,19 @@ public class ScenarioInfo {
 	public boolean isDevelopMode() {
 		return this.config.getBooleanValue(ConfigKey.KEY_DEVELOP_FLAG, false);
 	}
+
+	public String getMapDir() {
+	    return config.getValue("gis.map.dir");
+    }
+    public String getScenarioName() {
+	    String mapDir = getMapDir();
+        mapDir = mapDir.substring(0, mapDir.lastIndexOf('/'));
+        String mapName = mapDir.substring(mapDir.lastIndexOf('/')+1);
+        mapDir = mapDir.substring(0, mapDir.lastIndexOf('/'));
+        mapDir = mapDir.substring(mapDir.lastIndexOf('/')+1);
+        return mapDir + '_' + mapName;
+    }
+    public String getTeam() {
+        return config.getValue("kernel.team");
+    }
 }

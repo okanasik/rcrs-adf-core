@@ -9,6 +9,10 @@ import rescuecore2.standard.entities.StandardEntityURN;
 import java.util.EnumSet;
 
 public class OfficeFire extends Office<Building> {
+
+    public OfficeFire() {
+    }
+
 	public OfficeFire(TacticsFireStation tacticsFireStation, boolean isPrecompute, boolean isDebugMode, ModuleConfig moduleConfig, DevelopData developData) {
 		super(tacticsFireStation, isPrecompute, DATASTORAGE_FILE_NAME_FIRE, isDebugMode, moduleConfig, developData);
 	}

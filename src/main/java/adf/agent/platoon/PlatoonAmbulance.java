@@ -9,8 +9,11 @@ import rescuecore2.standard.entities.StandardEntityURN;
 import java.util.EnumSet;
 
 public class PlatoonAmbulance extends Platoon<AmbulanceTeam> {
+    public PlatoonAmbulance() {
+    }
+
 	public PlatoonAmbulance(TacticsAmbulanceTeam tactics, boolean isPrecompute, boolean isDebugMode, ModuleConfig moduleConfig, DevelopData developData) {
-		super(tactics, isPrecompute, DATASTORAGE_FILE_NAME_AMBULANCE, isDebugMode, moduleConfig, developData);
+        init(tactics, isPrecompute, DATASTORAGE_FILE_NAME_AMBULANCE, isDebugMode, moduleConfig, developData);
 	}
 
 	@Override

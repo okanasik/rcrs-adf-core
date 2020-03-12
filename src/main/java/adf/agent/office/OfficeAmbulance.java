@@ -9,6 +9,9 @@ import rescuecore2.standard.entities.StandardEntityURN;
 import java.util.EnumSet;
 
 public class OfficeAmbulance extends Office<Building> {
+    public OfficeAmbulance() {
+    }
+
 	public OfficeAmbulance(TacticsAmbulanceCentre tacticsAmbulanceCenter, boolean isPrecompute, boolean isDebugMode, ModuleConfig moduleConfig, DevelopData developData) {
 		super(tacticsAmbulanceCenter, isPrecompute, DATASTORAGE_FILE_NAME_AMBULANCE, isDebugMode, moduleConfig, developData);
 	}

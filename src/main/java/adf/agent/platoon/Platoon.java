@@ -2,21 +2,37 @@ package adf.agent.platoon;
 
 import adf.agent.Agent;
 import adf.agent.action.Action;
+import adf.agent.action.ambulance.ActionLoad;
+import adf.agent.action.ambulance.ActionUnload;
+import adf.agent.action.common.ActionMove;
+import adf.agent.action.common.ActionRest;
+import adf.agent.action.fire.ActionExtinguish;
+import adf.agent.action.police.ActionClear;
 import adf.agent.config.ModuleConfig;
 import adf.agent.develop.DevelopData;
 import adf.agent.info.AgentInfo;
 import adf.agent.module.ModuleManager;
 import adf.component.tactics.Tactics;
 import adf.launcher.ConsoleOutput;
+import data.ActionType;
+import data.Dataset;
+import rescuecore2.messages.Message;
 import rescuecore2.standard.entities.StandardEntity;
 
 public abstract class Platoon<E extends StandardEntity> extends Agent<E> {
 	private Tactics rootTactics;
 
+	public Platoon() {
+    }
+
 	Platoon(Tactics tactics, boolean isPrecompute, String dataStorageName, boolean isDebugMode, ModuleConfig moduleConfig, DevelopData developData) {
-		super(isPrecompute, dataStorageName, isDebugMode, moduleConfig, developData);
-		this.rootTactics = tactics;
+	    init(tactics, isPrecompute, dataStorageName, isDebugMode, moduleConfig, developData);
 	}
+
+	public void init(Tactics tactics, boolean isPrecompute, String dataStorageName, boolean isDebugMode, ModuleConfig moduleConfig, DevelopData developData) {
+	    super.init(isPrecompute, dataStorageName, isDebugMode, moduleConfig, developData);
+	    this.rootTactics = tactics;
+    }
 
 	@Override
 	protected void postConnect() {
@@ -57,6 +73,44 @@ public abstract class Platoon<E extends StandardEntity> extends Agent<E> {
 			this.agentInfo.setExecutedAction(this.agentInfo.getTime(), action);
 			send(action.getCommand(this.getID(), this.agentInfo.getTime()));
 		}
+        send((new ActionRest()).getCommand(agentInfo.getID(), agentInfo.getTime()));
 	}
+
+//	private void addAction(Dataset dataset, Action action) {
+//	    data.Action datasetAction = new data.Action();
+//	    if (action == null) {
+//	        datasetAction.targetId = 0;
+//	        datasetAction.type = ActionType.NULL;
+//        } else {
+//	        if (action instanceof ActionExtinguish) {
+//	            datasetAction.targetId = ((ActionExtinguish)action).getTarget().getValue();
+//	            datasetAction.type = ActionType.EXTINGUISH;
+//            } else if (action instanceof ActionClear) {
+//                datasetAction.targetId = ((ActionClear) action).getTarget().getValue();
+//                datasetAction.type = ActionType.CLEAR;
+//            } else if (action instanceof ActionLoad) {
+//                datasetAction.targetId = ((ActionLoad) action).getTarget().getValue();
+//                datasetAction.type = ActionType.LOAD;
+//            } else if (action instanceof ActionUnload) {
+//                datasetAction.targetId = 0; // no need to have target
+//                datasetAction.type = ActionType.UNLOAD;
+//            } else if (action instanceof ActionMove) {
+//                datasetAction.targetId = ((ActionMove) action).getTarget().getValue();
+//                datasetAction.type = ActionType.EXTINGUISH;
+//            } else if (action instanceof ActionExtinguish) {
+//                datasetAction.targetId = ((ActionExtinguish) action).getTarget().getValue();
+//                datasetAction.type = ActionType.EXTINGUISH;
+//            } else if (action instanceof ActionExtinguish) {
+//                datasetAction.targetId = ((ActionExtinguish) action).getTarget().getValue();
+//                datasetAction.type = ActionType.EXTINGUISH;
+//            } else if (action instanceof ActionExtinguish) {
+//                datasetAction.targetId = ((ActionExtinguish) action).getTarget().getValue();
+//                datasetAction.type = ActionType.EXTINGUISH;
+//            } else if (action instanceof ActionExtinguish) {
+//                datasetAction.targetId = ((ActionExtinguish) action).getTarget().getValue();
+//                datasetAction.type = ActionType.EXTINGUISH;
+//            }
+//        }
+//    }
 }
 

@@ -9,8 +9,11 @@ import rescuecore2.standard.entities.StandardEntityURN;
 import java.util.EnumSet;
 
 public class PlatoonPolice extends Platoon<PoliceForce> {
+    public PlatoonPolice() {
+    }
+
 	public PlatoonPolice(TacticsPoliceForce tactics, boolean isPrecompute, boolean isDebugMode, ModuleConfig moduleConfig, DevelopData developData) {
-		super(tactics, isPrecompute, DATASTORAGE_FILE_NAME_POLICE, isDebugMode, moduleConfig, developData);
+		init(tactics, isPrecompute, DATASTORAGE_FILE_NAME_POLICE, isDebugMode, moduleConfig, developData);
 	}
 
 	@Override
