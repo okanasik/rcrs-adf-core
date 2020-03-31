@@ -6,5 +6,15 @@ public class Node {
     public NodeType type;
     public int x;
     public int y;
+
+    @Override
+    public boolean equals(Object other) {
+        return ((Node)other).id == this.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
 }
 

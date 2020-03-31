@@ -11,7 +11,6 @@ public class Wrapper {
     public void test() {
         Episode episode = new Episode();
         episode.scenario = "NY1";
-        episode.agentId = 1234;
         episode.team = "ait";
 
         Frame frame = new Frame();
@@ -23,7 +22,7 @@ public class Wrapper {
         node0.x = 197;
         node0.y = 54;
         node0.repairCost = 100;
-        graph.nodes.add(node0);
+//        graph.nodes.add(node0);
         Building node1 = new Building();
         node1.id = 7630;
         node1.area = 12123;
@@ -33,13 +32,13 @@ public class Wrapper {
         node1.brokennes = 12;
         node1.fieryness = 59;
         node1.floors = 5;
-        graph.nodes.add(node1);
+//        graph.nodes.add(node1);
         Edge edge = new Edge();
         edge.from = node0.id;
         edge.to = node1.id;
         edge.weight = (int)Math.hypot(node0.x = node1.x, node0.y - node1.y);
-        graph.edges.add(edge);
-        frame.graph = graph;
+//        graph.edges.add(edge);
+//        frame.graph = graph;
 
         // ambulances
         Ambulance amb = new Ambulance();
@@ -50,7 +49,7 @@ public class Wrapper {
         amb.posId = 632;
         amb.x = 23;
         amb.y = 1;
-        frame.ambulances.add(amb);
+//        frame.ambulances.add(amb);
 
         // firebrigades
         FireBrigade fb = new FireBrigade();
@@ -61,7 +60,7 @@ public class Wrapper {
         fb.water = 89;
         fb.x = 98;
         fb.y = 39;
-        frame.firebrigades.add(fb);
+//        frame.firebrigades.add(fb);
 
         // polices
         Police police = new Police();
@@ -71,7 +70,7 @@ public class Wrapper {
         police.type = AgentType.POLICE;
         police.x = 21;
         police.y = 76;
-        frame.polices.add(police);
+//        frame.polices.add(police);
 
         // civilians
         Human civ0 = new Human();
@@ -81,7 +80,7 @@ public class Wrapper {
         civ0.type = AgentType.CIVILIAN;
         civ0.x = 66;
         civ0.y = 99;
-        frame.civilians.add(civ0);
+//        frame.civilians.add(civ0);
 
         Human civ1 = new Human();
         civ1.id = 101;
@@ -90,9 +89,7 @@ public class Wrapper {
         civ1.type = AgentType.CIVILIAN;
         civ1.x = 67;
         civ1.y = 100;
-        frame.civilians.add(civ1);
-
-        episode.frames.add(frame);
+//        frame.civilians.add(civ1);
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String jsonOutput = gson.toJson(episode);
@@ -101,7 +98,6 @@ public class Wrapper {
         // deserialize
         Episode ep2 = gson.fromJson(jsonOutput, Episode.class);
 
-        System.out.println(ep2.frames.get(0).polices.get(0).id);
     }
 
     public static void main(String[] args) {

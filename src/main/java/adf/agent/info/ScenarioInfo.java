@@ -203,6 +203,8 @@ public class ScenarioInfo {
     }
     public String getScenarioName() {
 	    String mapDir = getMapDir();
+        int mapNameIndex = mapDir.lastIndexOf("map");
+        mapDir = mapDir.substring(0, mapNameIndex);
         mapDir = mapDir.substring(0, mapDir.lastIndexOf('/'));
         String mapName = mapDir.substring(mapDir.lastIndexOf('/')+1);
         mapDir = mapDir.substring(0, mapDir.lastIndexOf('/'));
@@ -211,5 +213,13 @@ public class ScenarioInfo {
     }
     public String getTeam() {
         return config.getValue("kernel.team");
+    }
+
+    public static void main(String[] args) {
+	    // testing
+	    Config cfg = new Config();
+	    cfg.setValue("gis.map.dir", "../../scenarios/robocup2019/Kobe1/map/");
+	    ScenarioInfo sInfo = new ScenarioInfo(cfg, Mode.NON_PRECOMPUTE);
+	    System.out.println("scn.name:" + sInfo.getScenarioName());
     }
 }

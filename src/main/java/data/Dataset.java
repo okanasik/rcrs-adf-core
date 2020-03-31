@@ -1,6 +1,7 @@
 package data;
 
 import adf.agent.info.AgentInfo;
+import adf.agent.info.ScenarioInfo;
 import adf.agent.info.WorldInfo;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -14,12 +15,10 @@ import rescuecore2.standard.entities.StandardEntity;
 import rescuecore2.standard.entities.StandardEntityURN;
 import rescuecore2.worldmodel.EntityID;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -29,15 +28,49 @@ public class Dataset {
     private static final String FIREBRIGADEURN = StandardEntityURN.FIRE_BRIGADE.toString();
 
     private Episode episode;
-    public Dataset() {
-        episode = new Episode();
-    }
+    private ActionType actionType;
+    private static Object lockObject = new Object();
+    private boolean saved;
 
-    public void start(String scenario, String team, int agentId, String agentURN) {
+    public Dataset() {}
+
+    public void start(WorldInfo worldInfo, AgentInfo agentInfo, String scenario, String team) {
+        episode = new Episode();
         episode.scenario = scenario;
         episode.team = team;
-        episode.agentId = agentId;
-        episode.agentType = getAgentType(agentURN);
+        Agent agent = new Agent();
+        agent.agentId = agentInfo.getID().getValue();
+        agent.agentType = getAgentType(agentInfo.me().getURN());
+        episode.agent = agent;
+        saved = false;
+
+        Graph graph = new Graph();
+        episode.graph = graph;
+        fillGraph(worldInfo, graph);
+
+        // add firebrigades
+        for (StandardEntity se : worldInfo.getEntitiesOfType(StandardEntityURN.FIRE_BRIGADE)) {
+            episode.firebrigades.put(se.getID().getValue(), createFireBrigade(se));
+        }
+
+        // add ambulances
+        for (StandardEntity se : worldInfo.getEntitiesOfType(StandardEntityURN.AMBULANCE_TEAM)) {
+            episode.ambulances.put(se.getID().getValue(), createAmbulance(se));
+        }
+
+        // add polices
+        for (StandardEntity se : worldInfo.getEntitiesOfType(StandardEntityURN.POLICE_FORCE)) {
+            episode.polices.put(se.getID().getValue(), createPolice(se));
+        }
+
+        // set the default action type
+        if (agent.agentType == AgentType.AMBULANCE) {
+            actionType = ActionType.LOAD;
+        } else if (agent.agentType == AgentType.FIREBRIGADE) {
+            actionType = ActionType.EXTINGUISH;
+        } else if (agent.agentType == AgentType.POLICE) {
+            actionType = ActionType.CLEAR;
+        }
     }
 
     private AgentType getAgentType(String urn) {
@@ -52,92 +85,137 @@ public class Dataset {
         return type;
     }
 
+    private data.Ambulance createAmbulance(StandardEntity se) {
+        data.Ambulance datasetamb = new data.Ambulance();
+        setHumanProperties(datasetamb, (Human) se);
+        datasetamb.type = AgentType.AMBULANCE;
+        //TODO: how to set loaded
+        datasetamb.loaded = 0;
+        return datasetamb;
+    }
+
+    private data.FireBrigade createFireBrigade(StandardEntity se) {
+        data.FireBrigade datasetfb = new data.FireBrigade();
+        setHumanProperties(datasetfb, (Human) se);
+        datasetfb.type = AgentType.FIREBRIGADE;
+        datasetfb.water = ((FireBrigade) se).getWater();
+        return datasetfb;
+    }
+
+    private data.Police createPolice(StandardEntity se) {
+        data.Police datasetPolice = new data.Police();
+        setHumanProperties(datasetPolice, (Human) se);
+        datasetPolice.type = AgentType.POLICE;
+        return datasetPolice;
+    }
+
     public void addFrame(WorldInfo worldInfo, AgentInfo agentInfo) {
         Frame frame = new Frame();
         episode.frames.add(frame);
         frame.time = agentInfo.getTime();
-        Graph graph = new Graph();
 
+        // add itself as a changed entity
+        if (agentInfo.me().getURN().equals(FIREBRIGADEURN)) {
+            frame.change.firebrigades.put(agentInfo.getID().getValue(), createFireBrigade(agentInfo.me()));
+        } else if (agentInfo.me().getURN().equals(AMBULANCEURN)) {
+            frame.change.ambulances.put(agentInfo.getID().getValue(), createAmbulance(agentInfo.me()));
+        } else if (agentInfo.me().getURN().equals(POLICEURN)) {
+            frame.change.polices.put(agentInfo.getID().getValue(), createPolice(agentInfo.me()));
+        } else {
+            System.err.println("Unknown agent type!!" + agentInfo.me().getStandardURN());
+            System.exit(1);
+        }
+
+        for (EntityID id : worldInfo.getChanged().getChangedEntities()) {
+            StandardEntity se = worldInfo.getEntity(id);
+            switch (se.getStandardURN()) {
+                case AMBULANCE_CENTRE:
+                    frame.change.nodes.put(se.getID().getValue(), createBuilding(se, NodeType.AMBULANCECENTRE));
+                    break;
+                case POLICE_OFFICE:
+                    frame.change.nodes.put(se.getID().getValue(), createBuilding(se, NodeType.POLICEOFFICE));
+                    break;
+                case FIRE_STATION:
+                    frame.change.nodes.put(se.getID().getValue(), createBuilding(se, NodeType.FIRESTATION));
+                    break;
+                case REFUGE:
+                    frame.change.nodes.put(se.getID().getValue(), createBuilding(se, NodeType.REFUGE));
+                    break;
+                case GAS_STATION:
+                    frame.change.nodes.put(se.getID().getValue(), createBuilding(se, NodeType.GASSTATION));
+                    break;
+                case BUILDING:
+                    frame.change.nodes.put(se.getID().getValue(), createBuilding(se, NodeType.BUILDING));
+                    break;
+                case ROAD:
+                    frame.change.nodes.put(se.getID().getValue(), createRoad(se, NodeType.ROAD, worldInfo));
+                    break;
+                case HYDRANT:
+                    frame.change.nodes.put(se.getID().getValue(), createRoad(se, NodeType.HYDRANT, worldInfo));
+                    break;
+                case AMBULANCE_TEAM:
+                    frame.change.ambulances.put(se.getID().getValue(), createAmbulance(se));
+                    break;
+                case POLICE_FORCE:
+                    frame.change.polices.put(se.getID().getValue(), createPolice(se));
+                    break;
+                case FIRE_BRIGADE:
+                    frame.change.firebrigades.put(se.getID().getValue(), createFireBrigade(se));
+                    break;
+                case CIVILIAN:
+                    data.Human civ = new data.Human();
+                    setHumanProperties(civ, (Human)se);
+                    frame.change.civilians.put(se.getID().getValue(), civ);
+                    break;
+            }
+        }
+    }
+
+    private void fillGraph(WorldInfo worldInfo, Graph graph) {
         // add roads
         for (StandardEntity road : worldInfo.getEntitiesOfType(StandardEntityURN.ROAD)) {
-            addRoadToFrame(road, NodeType.ROAD, worldInfo, graph);
+            graph.nodes.put(road.getID().getValue(), createRoad(road, NodeType.ROAD, worldInfo));
         }
         // add hydrants
         for (StandardEntity hydrant : worldInfo.getEntitiesOfType(StandardEntityURN.HYDRANT)) {
-            addRoadToFrame(hydrant, NodeType.HYDRANT, worldInfo, graph);
+            graph.nodes.put(hydrant.getID().getValue(), createRoad(hydrant, NodeType.HYDRANT, worldInfo));
         }
-
         // add normal buildings
         for (StandardEntity building : worldInfo.getEntitiesOfType(StandardEntityURN.BUILDING)) {
-            addBuildingToFrame(building, NodeType.BUILDING, worldInfo, graph);
+            graph.nodes.put(building.getID().getValue(), createBuilding(building, NodeType.BUILDING));
         }
         // add refuge
         for (StandardEntity building : worldInfo.getEntitiesOfType(StandardEntityURN.REFUGE)) {
-            addBuildingToFrame(building, NodeType.REFUGE, worldInfo, graph);
+            graph.nodes.put(building.getID().getValue(), createBuilding(building, NodeType.REFUGE));
         }
         // add gas stations
         for (StandardEntity building : worldInfo.getEntitiesOfType(StandardEntityURN.GAS_STATION)) {
-            addBuildingToFrame(building, NodeType.GASSTATION, worldInfo, graph);
+            graph.nodes.put(building.getID().getValue(), createBuilding(building, NodeType.GASSTATION));
         }
         // add ambulance centre
         for (StandardEntity building : worldInfo.getEntitiesOfType(StandardEntityURN.AMBULANCE_CENTRE)) {
-            addBuildingToFrame(building, NodeType.AMBULANCECENTRE, worldInfo, graph);
+            graph.nodes.put(building.getID().getValue(), createBuilding(building, NodeType.AMBULANCECENTRE));
         }
         // add police office
         for (StandardEntity building : worldInfo.getEntitiesOfType(StandardEntityURN.POLICE_OFFICE)) {
-            addBuildingToFrame(building, NodeType.POLICEOFFICE, worldInfo, graph);
+            graph.nodes.put(building.getID().getValue(), createBuilding(building, NodeType.POLICEOFFICE));
         }
         // add fire station
         for (StandardEntity building : worldInfo.getEntitiesOfType(StandardEntityURN.FIRE_STATION)) {
-            addBuildingToFrame(building, NodeType.FIRESTATION, worldInfo, graph);
+            graph.nodes.put(building.getID().getValue(), createBuilding(building, NodeType.FIRESTATION));
         }
 
         // add edges
-        //TODO: add two edges for each edge
-        for (data.Node node : graph.nodes) {
+        for (data.Node node : graph.nodes.values()) {
             Area area = (Area) worldInfo.getEntity(new EntityID(node.id));
             for (EntityID eId : area.getNeighbours()) {
-                Area nearArea = (Area)worldInfo.getEntity(eId);
+                Area nearArea = (Area) worldInfo.getEntity(eId);
                 data.Edge edge = new data.Edge();
                 edge.from = area.getID().getValue();
                 edge.to = eId.getValue();
-                edge.weight = (int)Math.hypot(area.getX()-nearArea.getX(), area.getY()-nearArea.getY());
+                edge.weight = (int) Math.hypot(area.getX() - nearArea.getX(), area.getY() - nearArea.getY());
                 graph.edges.add(edge);
             }
-        }
-
-        // add civilians
-        for (StandardEntity se : worldInfo.getEntitiesOfType(StandardEntityURN.CIVILIAN)) {
-            data.Human datasetHuman = new data.Human();
-            setHumanProperties(datasetHuman, (Human)se);
-            frame.civilians.add(datasetHuman);
-        }
-
-        // add firebrigades
-        for (StandardEntity se : worldInfo.getEntitiesOfType(StandardEntityURN.FIRE_BRIGADE)) {
-            data.FireBrigade datasetfb = new data.FireBrigade();
-            setHumanProperties(datasetfb, (Human)se);
-            datasetfb.type = AgentType.FIREBRIGADE;
-            datasetfb.water = ((FireBrigade)se).getWater();
-            frame.firebrigades.add(datasetfb);
-        }
-
-        // add ambulances
-        for (StandardEntity se : worldInfo.getEntitiesOfType(StandardEntityURN.AMBULANCE_TEAM)) {
-            data.Ambulance datasetamb = new data.Ambulance();
-            setHumanProperties(datasetamb, (Human)se);
-            datasetamb.type = AgentType.AMBULANCE;
-            //TODO: how to set loaded
-            datasetamb.loaded = 0;
-            frame.ambulances.add(datasetamb);
-        }
-
-        // add polices
-        for (StandardEntity se : worldInfo.getEntitiesOfType(StandardEntityURN.POLICE_FORCE)) {
-            data.Police datasetPolice = new data.Police();
-            setHumanProperties(datasetPolice, (Human)se);
-            datasetPolice.type = AgentType.POLICE;
-            frame.polices.add(datasetPolice);
         }
     }
 
@@ -152,7 +230,7 @@ public class Dataset {
         datasetHuman.damage = human.isDamageDefined() ? human.getDamage() : 0;
     }
 
-    private void addRoadToFrame(StandardEntity se, NodeType type, WorldInfo worldInfo, Graph graph) {
+    private data.Road createRoad(StandardEntity se, NodeType type, WorldInfo worldInfo) {
         data.Road datasetRoad = new data.Road();
         datasetRoad.type = type;
         datasetRoad.id = se.getID().getValue();
@@ -168,10 +246,10 @@ public class Dataset {
                 }
             }
         }
-        graph.nodes.add(datasetRoad);
+        return datasetRoad;
     }
 
-    private void addBuildingToFrame(StandardEntity se, NodeType type, WorldInfo worldInfo, Graph graph) {
+    private data.Building createBuilding(StandardEntity se, NodeType type) {
         data.Building datasetBuilding = new data.Building();
         datasetBuilding.type = type;
         datasetBuilding.id = se.getID().getValue();
@@ -181,26 +259,56 @@ public class Dataset {
         datasetBuilding.floors = ((Building)se).getFloors();
         datasetBuilding.fieryness = ((Building)se).isFierynessDefined() ? ((Building)se).getFieryness() : 0;
         datasetBuilding.brokennes = ((Building)se).isBrokennessDefined() ? ((Building)se).getBrokenness() : 0;
-        graph.nodes.add(datasetBuilding);
+        return datasetBuilding;
     }
 
-    public void addAction(Action action) {
-        List<Frame> frames = episode.frames;
-        frames.get(frames.size()-1).action = action;
-    }
-
-    public void saveAsJson(String fileName) {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        try {
-            String episodeJsonString = gson.toJson(episode);
-            ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(fileName + ".zip"));
-            zipOut.setLevel(9); // maximum compression
-            ZipEntry entry = new ZipEntry(fileName.substring(fileName.lastIndexOf("/")+1)+".json");
-            zipOut.putNextEntry(entry);
-            zipOut.write(episodeJsonString.getBytes());
-            zipOut.close();
-        } catch (IOException ex) {
-            ex.printStackTrace();
+    public void addAction(WorldInfo worldInfo, AgentInfo agentInfo, ScenarioInfo scenarioInfo, EntityID targetId) {
+        Action action = new Action();
+        if (targetId == null) {
+            action.targetId = 0;
+            action.type = ActionType.NULL;
+        } else {
+            action.type = actionType;
+            action.targetId = targetId.getValue();
         }
+        episode.frames.get(episode.frames.size()-1).action = action;
+
+        if (agentInfo.getTime() == scenarioInfo.getKernelTimesteps()) {
+            saveAsJson(worldInfo, agentInfo, scenarioInfo);
+        }
+    }
+
+    private void saveAsJson(WorldInfo worldInfo, AgentInfo agentInfo, ScenarioInfo scenarioInfo) {
+        synchronized (lockObject) {
+            String fileName = createFileName(scenarioInfo, agentInfo);
+            System.out.println(agentInfo.getID() + ": saving the file:" + fileName);
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            try {
+                String episodeJsonString = gson.toJson(episode);
+                ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(fileName + ".zip"));
+                zipOut.setLevel(9); // maximum compression
+                ZipEntry entry = new ZipEntry(fileName.substring(fileName.lastIndexOf("/") + 1) + ".json");
+                zipOut.putNextEntry(entry);
+                zipOut.write(episodeJsonString.getBytes());
+                zipOut.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+            System.out.println(agentInfo.getID() + ": file is saved!");
+            lockObject.notify();
+            saved = true;
+        }
+    }
+
+    public boolean isSaved() {
+        return saved;
+    }
+
+    private static String createFileName(ScenarioInfo scenarioInfo, AgentInfo agentInfo) {
+        SimpleDateFormat timeFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+        String agentType = agentInfo.me().getURN().substring(agentInfo.me().getURN().lastIndexOf(":")+1);
+        String datasetFileName = scenarioInfo.getScenarioName()+"_"+scenarioInfo.getTeam()+"_"+agentType+"_"+agentInfo.getID()+"_"+timeFormat.format(new Date());
+        datasetFileName = "../dataset/" + datasetFileName;
+        return datasetFileName;
     }
 }
