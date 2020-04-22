@@ -11,9 +11,15 @@ import adf.component.module.AbstractModule;
 import rescuecore2.standard.entities.StandardEntity;
 import rescuecore2.worldmodel.EntityID;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public abstract class TargetDetector<E extends StandardEntity> extends AbstractModule {
+    protected Map<String,String> selectionInfo;
+
 	public TargetDetector(AgentInfo ai, WorldInfo wi, ScenarioInfo si, ModuleManager moduleManager, DevelopData developData) {
 		super(ai, wi, si, moduleManager, developData);
+        selectionInfo = new HashMap<>();
 	}
 
 	public abstract EntityID getTarget();
@@ -44,5 +50,9 @@ public abstract class TargetDetector<E extends StandardEntity> extends AbstractM
 		super.updateInfo(messageManager);
 		return this;
 	}
+
+	public Map<String,String> getSelectionInfo() {
+	    return selectionInfo;
+    }
 }
 

@@ -19,6 +19,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -276,6 +278,16 @@ public class Dataset {
         if (agentInfo.getTime() == scenarioInfo.getKernelTimesteps()) {
             saveAsJson(worldInfo, agentInfo, scenarioInfo);
         }
+    }
+
+    public void addInfo(AgentInfo agentInfo, Map<String,String> info) {
+        Frame latestFrame = episode.frames.get(episode.frames.size()-1);
+        latestFrame.infoMap.putAll(info);
+    }
+
+    public void addInfo(AgentInfo agnetInfo, String infoKey, String info) {
+        Frame latestFrame = episode.frames.get(episode.frames.size()-1);
+        latestFrame.infoMap.put(infoKey, info);
     }
 
     private void saveAsJson(WorldInfo worldInfo, AgentInfo agentInfo, ScenarioInfo scenarioInfo) {
