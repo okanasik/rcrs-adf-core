@@ -75,42 +75,5 @@ public abstract class Platoon<E extends StandardEntity> extends Agent<E> {
 		}
         send((new ActionRest()).getCommand(agentInfo.getID(), agentInfo.getTime()));
 	}
-
-//	private void addAction(Dataset dataset, Action action) {
-//	    data.Action datasetAction = new data.Action();
-//	    if (action == null) {
-//	        datasetAction.targetId = 0;
-//	        datasetAction.type = ActionType.NULL;
-//        } else {
-//	        if (action instanceof ActionExtinguish) {
-//	            datasetAction.targetId = ((ActionExtinguish)action).getTarget().getValue();
-//	            datasetAction.type = ActionType.EXTINGUISH;
-//            } else if (action instanceof ActionClear) {
-//                datasetAction.targetId = ((ActionClear) action).getTarget().getValue();
-//                datasetAction.type = ActionType.CLEAR;
-//            } else if (action instanceof ActionLoad) {
-//                datasetAction.targetId = ((ActionLoad) action).getTarget().getValue();
-//                datasetAction.type = ActionType.LOAD;
-//            } else if (action instanceof ActionUnload) {
-//                datasetAction.targetId = 0; // no need to have target
-//                datasetAction.type = ActionType.UNLOAD;
-//            } else if (action instanceof ActionMove) {
-//                datasetAction.targetId = ((ActionMove) action).getTarget().getValue();
-//                datasetAction.type = ActionType.EXTINGUISH;
-//            } else if (action instanceof ActionExtinguish) {
-//                datasetAction.targetId = ((ActionExtinguish) action).getTarget().getValue();
-//                datasetAction.type = ActionType.EXTINGUISH;
-//            } else if (action instanceof ActionExtinguish) {
-//                datasetAction.targetId = ((ActionExtinguish) action).getTarget().getValue();
-//                datasetAction.type = ActionType.EXTINGUISH;
-//            } else if (action instanceof ActionExtinguish) {
-//                datasetAction.targetId = ((ActionExtinguish) action).getTarget().getValue();
-//                datasetAction.type = ActionType.EXTINGUISH;
-//            } else if (action instanceof ActionExtinguish) {
-//                datasetAction.targetId = ((ActionExtinguish) action).getTarget().getValue();
-//                datasetAction.type = ActionType.EXTINGUISH;
-//            }
-//        }
-//    }
 }
 

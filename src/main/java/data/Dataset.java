@@ -19,8 +19,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -111,7 +111,7 @@ public class Dataset {
         return datasetPolice;
     }
 
-    public void addFrame(WorldInfo worldInfo, AgentInfo agentInfo) {
+    public void addFrame(WorldInfo worldInfo, AgentInfo agentInfo, Set<EntityID> messagedEntities) {
         Frame frame = new Frame();
         episode.frames.add(frame);
         frame.time = agentInfo.getTime();
@@ -128,7 +128,12 @@ public class Dataset {
             System.exit(1);
         }
 
-        for (EntityID id : worldInfo.getChanged().getChangedEntities()) {
+        addChanges(frame, worldInfo, worldInfo.getChanged().getChangedEntities());
+        addChanges(frame, worldInfo, messagedEntities);
+    }
+
+    private void addChanges(Frame frame, WorldInfo worldInfo, Set<EntityID> entities) {
+        for (EntityID id : entities) {
             StandardEntity se = worldInfo.getEntity(id);
             switch (se.getStandardURN()) {
                 case AMBULANCE_CENTRE:
