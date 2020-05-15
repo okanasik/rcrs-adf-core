@@ -69,7 +69,7 @@ public class TestLogger {
 
 		deleteDirectory(new File(LOG_FOLDER));
 
-		Logger.getRootLogger().getLoggerRepository().resetConfiguration();
+//		Logger.getRootLogger().getLoggerRepository().resetConfiguration();
 		Logger log = Logger.getLogger("com.infomatiq.jsi.rtree.RTree-delete");
 		log.addAppender(new NullAppender());
 		log = Logger.getLogger("com.infomatiq.jsi.rtree.RTree");
