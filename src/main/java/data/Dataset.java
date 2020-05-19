@@ -49,6 +49,7 @@ public class Dataset {
         Graph graph = new Graph();
         episode.graph = graph;
         fillGraph(worldInfo, graph);
+        addEdges(worldInfo, graph);
 
         // add firebrigades
         for (StandardEntity se : worldInfo.getEntitiesOfType(StandardEntityURN.FIRE_BRIGADE)) {
@@ -178,7 +179,7 @@ public class Dataset {
         }
     }
 
-    private void fillGraph(WorldInfo worldInfo, Graph graph) {
+    public static void fillGraph(WorldInfo worldInfo, Graph graph) {
         // add roads
         for (StandardEntity road : worldInfo.getEntitiesOfType(StandardEntityURN.ROAD)) {
             graph.nodes.put(road.getID().getValue(), createRoad(road, NodeType.ROAD, worldInfo));
@@ -211,7 +212,9 @@ public class Dataset {
         for (StandardEntity building : worldInfo.getEntitiesOfType(StandardEntityURN.FIRE_STATION)) {
             graph.nodes.put(building.getID().getValue(), createBuilding(building, NodeType.FIRESTATION));
         }
+    }
 
+    public static void addEdges(WorldInfo worldInfo, Graph graph) {
         // add edges
         for (data.Node node : graph.nodes.values()) {
             Area area = (Area) worldInfo.getEntity(new EntityID(node.id));
@@ -237,7 +240,7 @@ public class Dataset {
         datasetHuman.damage = human.isDamageDefined() ? human.getDamage() : 0;
     }
 
-    private data.Road createRoad(StandardEntity se, NodeType type, WorldInfo worldInfo) {
+    private static data.Road createRoad(StandardEntity se, NodeType type, WorldInfo worldInfo) {
         data.Road datasetRoad = new data.Road();
         datasetRoad.type = type;
         datasetRoad.id = se.getID().getValue();
@@ -256,7 +259,7 @@ public class Dataset {
         return datasetRoad;
     }
 
-    private data.Building createBuilding(StandardEntity se, NodeType type) {
+    private static data.Building createBuilding(StandardEntity se, NodeType type) {
         data.Building datasetBuilding = new data.Building();
         datasetBuilding.type = type;
         datasetBuilding.id = se.getID().getValue();
