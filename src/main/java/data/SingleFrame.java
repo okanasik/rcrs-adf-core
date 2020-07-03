@@ -18,6 +18,7 @@ public class SingleFrame {
     private Map<Integer, Police> polices;
     private Map<Integer, Human> civilians;
     private Human agent;
+    private int time;
 
     public SingleFrame() {
         graph = new Graph();
@@ -26,9 +27,11 @@ public class SingleFrame {
         polices = new HashMap<>();
         civilians = new HashMap<>();
         agent = null;
+        time = -1;
     }
 
     public void update(WorldInfo worldInfo, AgentInfo agentInfo) {
+        time = agentInfo.getTime();
         updateGraph(worldInfo);
         updateAgents(worldInfo);
 
