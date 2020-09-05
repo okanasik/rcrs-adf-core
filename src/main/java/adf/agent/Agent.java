@@ -14,7 +14,6 @@ import adf.component.communication.CommunicationModule;
 import adf.launcher.ConfigKey;
 import adf.launcher.ConsoleOutput;
 import rescuecore2.components.AbstractAgent;
-import rescuecore2.config.ConfigException;
 import rescuecore2.messages.Command;
 import rescuecore2.messages.Message;
 import rescuecore2.messages.control.KASense;
@@ -130,7 +129,7 @@ public abstract class Agent<E extends StandardEntity> extends AbstractAgent<Stan
 	}
 
 	@Override
-	protected void processSense(KASense sense) {
+	public void processSense(KASense sense) {
 		int time = sense.getTime();
 		ChangeSet changed = sense.getChangeSet();
 		this.worldInfo.setTime(time);
